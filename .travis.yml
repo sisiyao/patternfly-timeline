@@ -1,0 +1,24 @@
+language: node_js
+node_js:
+  - "5"
+
+env:
+  - CXX=g++-4.8
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
+before_install:
+  - 'git checkout -B $TRAVIS_BRANCH' # Reconcile detached HEAD
+  - 'if [[ `npm -v` != 3* ]]; then npm i -g npm@3; fi'
+
+script:
+  - 'npm run build'
+  - 'npm run test'
+
+after_success:
+  - sh -x ./scripts/publish.sh
