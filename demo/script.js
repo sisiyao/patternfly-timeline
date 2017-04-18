@@ -20,7 +20,10 @@ var data = [],
   today = new Date('2016-05-02T17:59:06.134Z');
 
 for (var x in json) { //json lives in external file for testing
+  // data becomes array of objects
   data[x] = {};
+  // [{name: _, data: [{date: _, details: _}, {}, {}], display: true]
+  // transforms json date to date object
   data[x].name = json[x].name;
   data[x].data = [];
   for (var y in json[x].data) {
@@ -28,11 +31,14 @@ for (var x in json) { //json lives in external file for testing
     data[x].data[y].date = new Date(json[x].data[y].date);
     data[x].data[y].details = json[x].data[y].details;
   }
+  // adds a select option for each event type
   $('#timeline-selectpicker').append("<option>" + data[x].name + "</option>");
   data[x].display = true;
 }
+// default selects all event types
 $('#timeline-selectpicker').selectpicker('selectAll');
 
+// returns inner timeline function with time and scale configs and eventClick listener
 var timeline = d3.chart.timeline()
   .end(today)
   .start(today - ONE_WEEK)
@@ -65,33 +71,40 @@ if(countNames(data) <= 0) {
 }
 
 
-
+// create a d3 element in the DOM if that event type has display = true
 var element = d3.select('#pf-timeline').append('div').datum(data.filter(function(eventGroup) {
   return eventGroup.display === true;
 }));
+//
+console.log(element);
 timeline(element);
 
+// event listener: when selectpicker changes, selectpicker options update, timeline data shown updates, timeline is inner function reruns
 $('#timeline-selectpicker').on('changed.bs.select', function(event, clickedIndex, newValue, oldValue) {
   data[clickedIndex].display = !data[clickedIndex].display;
   element.datum(data.filter(function(eventGroup) {
     return eventGroup.display === true;
   }));
+  console.log(element);
   timeline(element);
+  // ???
   $('[data-toggle="popover"]').popover({
     'container': '#pf-timeline',
     'placement': 'top'
   });
 });
 
+// event listener: when window resizes, timeline inner function reruns
 $(window).on('resize', function() {
   timeline(element);
+  // ???
   $('[data-toggle="popover"]').popover({
     'container': '#pf-timeline',
     'placement': 'top'
   });
 });
 
-
+// datepicker settings
 $('#datepicker').datepicker({
   autoclose: true,
   todayBtn: "linked",
@@ -100,8 +113,11 @@ $('#datepicker').datepicker({
 
 $('#datepicker').datepicker('setDate', today);
 
+// datepicker event listener for zooming
 $('#datepicker').on('changeDate', zoomFilter);
 
+// event listener for clicking in time filters dropdown menus
+// when a time dropdown item is clicked, finds closest dropdown label, and sets label text
 $( document.body ).on( 'click', '.dropdown-menu li', function( event ) {
   var $target = $( event.currentTarget );
     $target.closest( '.dropdown' )
@@ -125,6 +141,7 @@ function countNames(data) {
 }
 
 function zoomFilter() {
+  // get range, position, and date variables from dropdown labels and datepicker
   var range = $('#range-dropdown').find('[data-bind="label"]' ).text(),
       position = $('#position-dropdown').find('[data-bind="label"]' ).text(),
       date = $('#datepicker').datepicker('getDate'),
@@ -164,11 +181,14 @@ function zoomFilter() {
       endDate = date;
       break;
   }
+  // set zoomfilter
   timeline.Zoom.zoomFilter(startDate, endDate);
 }
 
+// event listener for reset button
 $('#reset-button').click(function() {
   timeline(element);
+  // ???
   $('[data-toggle="popover"]').popover({
     'container': '#pf-timeline',
     'placement': 'top'
